@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_mandrill_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_mandrill';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class MandrillResult {
+  /// Creates a result.
   const MandrillResult({
     this.messageId,
     this.sentCount,
@@ -55,8 +56,13 @@ class MandrillResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class MandrillCallResult<T> {
+  /// Creates a call result.
   const MandrillCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final MandrillResult? result;
 }
@@ -85,68 +91,68 @@ Future<T> tracedMandrill<T>({
   final span = _tracer().startSpan(
     'mandrill $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.messageId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'mandrill.message.id',
           r.result!.messageId!,
         ));
       }
       if (r.result!.sentCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'mandrill.sent',
           r.result!.sentCount!,
         ));
       }
       if (r.result!.queuedCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'mandrill.queued',
           r.result!.queuedCount!,
         ));
       }
       if (r.result!.rejectedCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'mandrill.rejected',
           r.result!.rejectedCount!,
         ));
       }
       if (r.result!.invalidCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'mandrill.invalid',
           r.result!.invalidCount!,
         ));
       }
       if (r.result!.rejectReason != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'mandrill.reject.reason',
           r.result!.rejectReason!,
         ));
       }
       if (r.result!.templateName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'mandrill.template.name',
           r.result!.templateName!,
         ));
       }
       if (r.result!.subaccount != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'mandrill.subaccount',
           r.result!.subaccount!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'mandrill.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -157,13 +163,13 @@ Future<T> tracedMandrill<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
